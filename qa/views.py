@@ -16,7 +16,7 @@ def index(request):
     error_names_counts = {}
     error_counts_by_day = {}
 
-    queryset = models.Error.objects.order_by('found_date').all()
+    queryset = models.Error.objects.order_by('committed_date').all()
 
     for error in queryset:
         # error count
@@ -24,7 +24,7 @@ def index(request):
         error_names_counts[error.type.name] += 1
 
         # error count by week
-        key = error.found_date.strftime("%Y-%m-%d")
+        key = error.committed_date.strftime("%Y-%m-%d")
         error_counts_by_day.setdefault(key, 0)
         error_counts_by_day[key] += 1
 
@@ -37,7 +37,8 @@ def index(request):
     )
 
     available_coordinators = list(
-        models.Employee.objects.values("id", "name").all()
+        models.Employee.objects.filter(
+            roles__name="Coordinator").values("id", "name").all()
     )
 
     available_tags = list(
@@ -48,7 +49,7 @@ def index(request):
 
     context = {
         # table
-        "errors": models.Error.objects.order_by('-found_date').all()[:10],
+        "errors": models.Error.objects.order_by('-committed_date').all()[:30],
 
         # pie chart
         'pie_chart_labels': list(error_names_counts.keys()),
@@ -89,7 +90,8 @@ def get_error(request, error_id: int):
     )
 
     available_coordinators = list(
-        models.Employee.objects.values("id", "name").all()
+        models.Employee.objects.filter(
+            roles__name="Coordinator").values("id", "name").all()
     )
 
     available_tags = list(
@@ -196,6 +198,15 @@ def update_error(request):
     return redirect("/")
 
 
+def delete_error(request, error_id: int):
+    print(error_id)
+
+    error = models.Error.objects.filter(id=error_id).first()
+    error.delete()
+
+    return redirect("/")
+
+
 def get_error_count_by_week():
     # https://stackoverflow.com/questions/8746014/django-group-by-date-day-month-year
 
@@ -205,7 +216,7 @@ def get_error_count_by_week():
 
     queryset = list(
         models.Error.objects
-        .annotate(week=TruncWeek("found_date"))
+        .annotate(week=TruncWeek("committed_date"))
         .values("week")
         .annotate(c=Count("id"))
         .values("week", "c")
@@ -222,3 +233,92 @@ def get_error_count_by_week():
         week_counts[key] = value
 
     return week_counts
+
+
+def search_errors(request):
+    from django.utils.datastructures import MultiValueDictKeyError
+
+    # gets list of every error
+    errors = models.Error.objects.all()
+
+    # get tag names from URL
+    tag_names = request.GET.getlist("tags")
+    # Get data from database
+    tags = models.Tag.objects.filter(name__in=tag_names)
+
+    # filter out errors that dont have specified tags via loop
+    for tag in tags:
+        errors = errors.filter(tags__id=tag.id)
+
+    start_date_str = request.GET.get("start")
+    # if the startdate is not null (in other words a start date is specified)
+    if start_date_str:
+        # save that date in the right format
+        start_date = datetime.strptime(
+            # format it properly
+            start_date_str,
+            "%Y-%m-%d"
+        )  # Dec. 16, 2020
+        # do a search for all errors that were commited after start date
+        errors = errors.filter(committed_date__gte=start_date)
+
+    end_date_str = request.GET.get("end")
+    # if the enddate is not null (in other words a end date is specified)
+    if end_date_str:
+        # save that date in the right format
+        end_date = datetime.strptime(
+            # format it properly
+            end_date_str,
+            "%Y-%m-%d"
+        )  # Dec. 16, 2020
+        # do a search for all errors that were commited before end date
+        errors = errors.filter(committed_date__lte=end_date)
+
+    employee_name = request.GET.get("employee")
+    if employee_name:
+        errors = errors.filter(employees__name=employee_name)
+
+    coordinator_name = request.GET.get("coordinator")
+    if coordinator_name:
+        errors = errors.filter(coordinator__name=coordinator_name)
+
+    fp_num = request.GET.get("fp_num")
+    if fp_num:
+        errors = errors.filter(footprints_number=fp_num)
+
+    notes = request.GET.get("notes")
+    if notes:
+        errors = errors.filter(notes__contains=notes)
+
+    _type = request.GET.get("type")
+    if _type:
+        errors = errors.filter(type__name=_type)
+
+    available_error_types = list(
+        models.ErrorType.objects.values("id", "name").all()
+    )
+
+    available_employees = list(
+        models.Employee.objects.values("id", "name").all()
+    )
+
+    available_coordinators = list(
+        models.Employee.objects.filter(
+            roles__name="Coordinator").values("id", "name").all()
+    )
+
+    available_tags = list(
+        models.Tag.objects.values("id", "name").all()
+    )
+
+    context = {
+        # at this point all errors have the same tag
+        "errors": errors,
+        "available_error_types": available_error_types,
+        "available_employees": available_employees,
+        "available_coordinators": available_coordinators,
+        "available_tags": available_tags,
+    }
+    template = loader.get_template("qa/search_errors.html.j2")
+
+    return HttpResponse(template.render(context, request))

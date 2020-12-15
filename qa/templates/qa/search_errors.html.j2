@@ -1,0 +1,146 @@
+{% extends 'qa/base.html.j2' %}
+
+{% block styles %}
+<style>
+  /* https://stackoverflow.com/questions/3790935/can-i-hide-the-html5-number-input-s-spin-box */
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+      /* display: none; <- Crashes Chrome on hover */
+      -webkit-appearance: none;
+      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+  }
+
+  input[type=number] {
+      -moz-appearance:textfield; /* Firefox */
+  }
+</style>
+{% endblock styles %}
+
+{% block content %}
+  <a href="/" class="btn btn-primary">Back</a>
+
+  <form action="/search" method="get">
+    <div class="row">
+      <div class="col-md-10">
+        <div class="row">
+          {# NOTES #}
+          <div class="col-md-3">
+            <label for="notes">Notes</label>
+            <input type="text" class="form-control" placeholder="Notes" name="notes" id="notes">
+          </div>
+
+          {# FP# #}
+          <div class="col-md-3">
+            <label for="fp_num">FP#</label>
+            <input type="number" class="form-control" placeholder="12345" name="fp_num" id="fp_num">
+          </div>
+
+          {# START DATE #}
+          <div class="col-md-3">
+            <label for="start">Start</label>
+            <input type="date" class="form-control" name="start" id="start">
+          </div>
+
+          {# START DATE #}
+          <div class="col-md-3">
+            <label for="end">End</label>
+            <input type="date" class="form-control" name="end" id="end">
+          </div>
+        </div>
+
+        <div class="row">
+          {# TYPE #}
+          <div class="col-md-3">
+            <label for="type">Type</label>
+            <select class="form-control" name="type" id="type">
+              <option value="" selected></option>
+              
+              {% for error_type in available_error_types %}
+                <option value="{{ error_type.name }}">{{ error_type.name }}</option>
+              {% endfor %}
+
+            </select>
+          </div>
+
+          {# EMPLOYEE #}
+          <div class="col-md-3">
+            <label for="employee">Employee</label>
+            <select class="form-control" name="employee" id="employee">
+              <option value="" selected></option>
+              
+              {% for employee in available_employees %}
+                <option value="{{ employee.name }}">{{ employee.name }}</option>
+              {% endfor %}
+
+            </select>
+          </div>
+
+          {# COORDINATOR #}
+          <div class="col-md-3">
+            <label for="coordinator">Coordinator</label>
+            <select class="form-control" name="coordinator" id="coordinator">
+              <option value="" selected></option>
+              
+              {% for coordinator in available_coordinators %}
+                <option value="{{ coordinator.name }}">{{ coordinator.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# BUTTON #}
+          <div class="col-md-3 d-grid gap-2">
+            <button class="btn btn-primary mt-4" type="submit">Search</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-2">
+      <label for="tags">Tags</label>
+        <select class="form-select" multiple aria-label="multiple select example" name="tags" id="tags">
+          {% for tag in available_tags %}
+            <option value="{{ tag.name }}">{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+  </form>
+
+  <table class="table table-striped table-hover table-sm">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Notes</th>
+        <th scope="col">FP#</th>
+        <th scope="col">Date Found</th>
+        <th scope="col">Date Committed</th>
+        <th scope="col">Type</th>
+        <th scope="col">Employee</th>
+        <th scope="col">Coordinator</th>
+        <th scope="col">Tags</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for error in errors %}
+      <tr>
+        <th scope="row">{{ error.id }}</th>
+        <td>{{ error.notes }}</td>
+        <td>{{ error.footprints_number }}</td>
+        <td>{{ error.found_date }}</td>
+        <td>{{ error.committed_date }}</td>
+        <td>{{ error.type }}</td>
+        <td>{{ error.employees }}</td>
+        <td>{{ error.coordinator }}</td>
+        <td>
+          {% for tag in error.tags.all %}
+            <span class="badge rounded-pill bg-primary">{{ tag }}</span>
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock content %}
+
+{% block scripts %}
+    
+{% endblock scripts %}

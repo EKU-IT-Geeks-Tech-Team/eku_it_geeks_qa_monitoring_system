@@ -11,4 +11,6 @@ urlpatterns = [
     path("error/<int:error_id>", views.get_error, name="view_error"),
     path("create_error", views.create_error),
     path("update_error", views.update_error),
+    path("delete_error/<int:error_id>", views.delete_error, name="delete_error"),
+    path("search", views.search_errors, name="search")
 ]
