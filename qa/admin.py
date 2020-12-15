@@ -15,7 +15,7 @@ class AdminErrorType(admin.ModelAdmin):
 
 class AdminError(admin.ModelAdmin):
     model = models.Error
-    list_display = ("coordinator", "employees", "found_date")
+    list_display = ("id", "coordinator", "employees", "found_date")
     ordering = ("found_date",)
     search_fields = ("notes",)
 

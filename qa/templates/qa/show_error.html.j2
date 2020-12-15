@@ -1,0 +1,148 @@
+{% extends 'qa/base.html.j2' %}
+
+{% block content %}
+
+  <a href="/" class="btn btn-primary">Back</a>
+
+  <form action="/update_error" method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="id" id="errorId" value="{{ error.id }}" hidden>
+
+    <!-- Notes -->
+    <div class="form-group">
+      <label for="notesInput">Notes</label>
+      <textarea
+        class="form-control"
+        id="notesInput"
+        name="notes"
+        placeholder="Please provide a brief description of the error"
+      >{{ error.notes }}</textarea>
+    </div>
+
+    <!-- FP# -->
+    <div class="form-group">
+      <label for="fpInput">FP#</label>
+      <input
+        type="text"
+        class="form-control"
+        id="fpInput"
+        name="footprints_number"
+        placeholder="12345"
+        {% if error.footprints_number != None %}
+            value="{{ error.footprints_number }}"
+        {% endif %}
+      />
+    </div>
+
+    <!-- Found Date -->
+    <div class="form-group">
+      <label for="dateFoundInput">Date Found</label>
+      <input
+        type="date"
+        class="form-control"
+        id="dateFoundInput"
+        name="found_date"
+        value="{{ formatted_found_date }}"
+      />
+    </div>
+
+    <!-- Committed Date -->
+    <div class="form-group">
+      <label for="dateCommittedInput">Date Committed</label>
+      <input
+        type="date"
+        class="form-control"
+        id="dateCommittedInput"
+        name="committed_date"
+        value="{{ formatted_committed_date }}"
+      />
+    </div>
+
+    <!-- Error Type -->
+    <div class="form-group">
+      <label for="errorTypeInput">Error Type</label>
+      <select class="form-control" id="errorTypeInput" name="error_type_id">
+        {% for error_type in available_error_types %}
+        <option
+            value="{{ error_type.id }}"
+            {% ifequal error_type.id error.type.id %}
+                selected
+            {% endifequal %}
+        >
+            {{ error_type.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Employee -->
+    <div class="form-group">
+      <label for="employeeInput">Employee</label>
+      <select class="form-control" id="employeeInput" name="employee_id">
+        {% for employee in available_employees %}
+        <option
+            value="{{ employee.id }}"
+            {% ifequal employee.id error.employees.id %}
+                selected
+            {% endifequal %}
+        >
+            {{ employee.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Coordinator -->
+    <div class="form-group">
+      <label for="coordinatorInput">Coordinator</label>
+      <select class="form-control" id="coordinatorInput" name="coordinator_id">
+        {% for coordinator in available_coordinators %}
+        <option
+            value="{{ coordinator.id }}"
+            {% ifequal coordinator.id error.coordinator.id %}
+                selected
+            {% endifequal %}
+        >
+                {{ coordinator.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Tags -->
+    <div class="form-group">
+      <label for="tagInput">Tags</label>
+      <select
+        multiple
+        class="form-control"
+        id="tagInput"
+        name="tag_ids"
+        aria-describedby="tagHelp"
+      >
+        {% for tag in available_tags %}
+        <option
+            value="{{ tag.id }}"
+            {% if tag in error.tags.values.all %}
+                selected
+            {% endif %}
+        >
+            {{ tag.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <small id="tagHelp" class="form-text text-muted">
+        Hold CTRL to select multiple tags
+      </small>
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">Update</button>
+  </form>
+    
+{% endblock content %}
+
+{% block scripts %}
+    
+{% endblock scripts %}
