@@ -18,7 +18,7 @@
 {% endblock styles %}
 
 {% block content %}
-  <a href="/" class="btn btn-primary">Back</a>
+  <a href="{% url 'qa:index' %}" class="btn btn-primary mb-3">Back</a>
 
   <form action="/search" method="get">
     <div class="row">
@@ -27,25 +27,59 @@
           {# NOTES #}
           <div class="col-md-3">
             <label for="notes">Notes</label>
-            <input type="text" class="form-control" placeholder="Notes" name="notes" id="notes">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Notes"
+              name="notes"
+              id="notes"
+              {% if current_query.notes is not None %}
+                value="{{ current_query.notes }}"
+              {% endif %}
+            >
           </div>
 
           {# FP# #}
           <div class="col-md-3">
             <label for="fp_num">FP#</label>
-            <input type="number" class="form-control" placeholder="12345" name="fp_num" id="fp_num">
+            <input
+              type="number"
+              class="form-control"
+              placeholder="12345"
+              name="fp_num"
+              id="fp_num"
+              {% if current_query.fp_num is not None %}
+                value="{{ current_query.fp_num }}"
+              {% endif %}
+            >
           </div>
 
           {# START DATE #}
           <div class="col-md-3">
             <label for="start">Start</label>
-            <input type="date" class="form-control" name="start" id="start">
+            <input
+              type="date"
+              class="form-control"
+              name="start"
+              id="start"
+              {% if current_query.start_date is not None %}
+                value="{{ current_query.start_date }}"
+              {% endif %}
+            >
           </div>
 
           {# START DATE #}
           <div class="col-md-3">
             <label for="end">End</label>
-            <input type="date" class="form-control" name="end" id="end">
+            <input
+              type="date"
+              class="form-control"
+              name="end"
+              id="end"
+              {% if current_query.end_date is not None %}
+                value="{{ current_query.end_date }}"
+              {% endif %}
+            >
           </div>
         </div>
 
@@ -54,10 +88,22 @@
           <div class="col-md-3">
             <label for="type">Type</label>
             <select class="form-control" name="type" id="type">
-              <option value="" selected></option>
+              <option
+                value=""
+                {% if current_query.type is None %}
+                  selected
+                {% endif %}
+              ></option>
               
               {% for error_type in available_error_types %}
-                <option value="{{ error_type.name }}">{{ error_type.name }}</option>
+                <option
+                  value="{{ error_type.name }}"
+                  {% ifequal current_query.type error_type.name %}
+                    selected
+                  {% endifequal %}
+                >
+                  {{ error_type.name }}
+                </option>
               {% endfor %}
 
             </select>
@@ -67,10 +113,22 @@
           <div class="col-md-3">
             <label for="employee">Employee</label>
             <select class="form-control" name="employee" id="employee">
-              <option value="" selected></option>
+              <option
+                value=""
+                {% if current_query.employee is None %}
+                  selected
+                {% endif %}
+              ></option>
               
               {% for employee in available_employees %}
-                <option value="{{ employee.name }}">{{ employee.name }}</option>
+                <option
+                  value="{{ employee.name }}"
+                  {% ifequal current_query.employee employee.name %}
+                    selected
+                  {% endifequal %}
+                >
+                  {{ employee.name }}
+                </option>
               {% endfor %}
 
             </select>
@@ -80,10 +138,22 @@
           <div class="col-md-3">
             <label for="coordinator">Coordinator</label>
             <select class="form-control" name="coordinator" id="coordinator">
-              <option value="" selected></option>
+              <option
+                value=""
+                {% if current_query.coordinator is None %}
+                  selected
+                {% endif %}
+              ></option>
               
               {% for coordinator in available_coordinators %}
-                <option value="{{ coordinator.name }}">{{ coordinator.name }}</option>
+                <option
+                  value="{{ coordinator.name }}"
+                  {% ifequal current_query.coordinator coordinator.name %}
+                    selected
+                  {% endifequal %}
+                >
+                  {{ coordinator.name }}
+                </option>
               {% endfor %}
             </select>
           </div>
@@ -99,48 +169,81 @@
       <label for="tags">Tags</label>
         <select class="form-select" multiple aria-label="multiple select example" name="tags" id="tags">
           {% for tag in available_tags %}
-            <option value="{{ tag.name }}">{{ tag.name }}</option>
+            <option
+              value="{{ tag.name }}"
+              {% if tag.name in current_query.tags %}
+                selected
+              {% endif %}
+            >
+              {{ tag.name }}
+            </option>
           {% endfor %}
         </select>
       </div>
   </form>
 
-  <table class="table table-striped table-hover table-sm">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">Notes</th>
-        <th scope="col">FP#</th>
-        <th scope="col">Date Found</th>
-        <th scope="col">Date Committed</th>
-        <th scope="col">Type</th>
-        <th scope="col">Employee</th>
-        <th scope="col">Coordinator</th>
-        <th scope="col">Tags</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for error in errors %}
-      <tr>
-        <th scope="row">{{ error.id }}</th>
-        <td>{{ error.notes }}</td>
-        <td>{{ error.footprints_number }}</td>
-        <td>{{ error.found_date }}</td>
-        <td>{{ error.committed_date }}</td>
-        <td>{{ error.type }}</td>
-        <td>{{ error.employees }}</td>
-        <td>{{ error.coordinator }}</td>
-        <td>
-          {% for tag in error.tags.all %}
-            <span class="badge rounded-pill bg-primary">{{ tag }}</span>
-          {% endfor %}
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  {% if errors|length > 0 %}
+    <table class="table table-striped table-hover table-sm">
+      <thead>
+        <tr>
+          <th scope="col">Notes</th>
+          <th scope="col">FP#</th>
+          <th scope="col">Date Found</th>
+          <th scope="col">Date Committed</th>
+          <th scope="col">Type</th>
+          <th scope="col">Employee</th>
+          <th scope="col">Coordinator</th>
+          <th scope="col">Tags</th>
+          <th scope="col">Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for error in errors %}
+        <tr data-id="{{ error.id }}" data-href="{% url 'qa:view_error' error.id %}" class="clickable-row">
+          <td>{{ error.notes }}</td>
+          <td>{{ error.footprints_number }}</td>
+          <td>{{ error.found_date }}</td>
+          <td>{{ error.committed_date }}</td>
+          <td>{{ error.type }}</td>
+          <td>{{ error.employees }}</td>
+          <td>{{ error.coordinator }}</td>
+          <td>
+            {% for tag in error.tags.all %}
+              <span class="badge rounded-pill bg-primary">{{ tag }}</span>
+            {% endfor %}
+          </td>
+          <td>
+            <span
+            {% if error.type.severity >= 5 %}
+              class="badge bg-danger"
+            {% else %}
+              class="badge bg-secondary"
+            {% endif %}
+            >
+              {{ error.type.severity }}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+  {% else %}
+    <h3 class="mt-5">Search returned no results</h3>
+  {% endif %}
+
+  
 {% endblock content %}
 
 {% block scripts %}
-    
+<script>
+  window.addEventListener("load", () => {
+    // make table rows clickable
+    document.querySelectorAll(".clickable-row").forEach(row => {
+      row.addEventListener("click", () => {
+        window.location = row.dataset.href
+      })
+    })
+  })
+</script>
 {% endblock scripts %}

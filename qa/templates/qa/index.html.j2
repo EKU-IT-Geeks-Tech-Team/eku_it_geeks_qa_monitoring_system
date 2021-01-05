@@ -18,7 +18,7 @@
     <h1>Geek QA</h1>
   </div>
   <div class="col-md-6 d-flex justify-content-center justify-content-md-end">
-    <a href="{% url 'search' %}" class="btn btn-primary btn-lg mx-2">
+    <a href="{% url 'qa:search' %}" class="btn btn-primary btn-lg mx-2">
       Search
     </a>
 
@@ -50,7 +50,7 @@
     </thead>
     <tbody>
       {% for e in errors %}
-      <tr data-id="{{ e.id }}" data-href="{% url 'view_error' e.id %}" class="clickable-row">
+      <tr data-id="{{ e.id }}" data-href="{% url 'qa:view_error' e.id %}" class="clickable-row">
         <td>{{ e.employees }}</td>
         <td>{{ e.type.name }}</td>
         <td>{{ e.committed_date }}</td>
@@ -176,8 +176,10 @@
 </div>
 
 {# CREATE BUTTON FOR EACH WEEK #}
-<a href="{% url 'search' %}?start=2020-12-14&end=2020-12-20" class="btn btn-primary">2020-12-14</a>
-<a href="{% url 'search' %}?start=2020-12-07&end=2020-12-13" class="btn btn-primary">2020-12-07</a>
+
+{% for week in weeks %}
+  <a href="{% url 'qa:search' %}?start={{ week.start }}&end={{ week.end }}" class="btn btn-primary mt-2 mb-3">{{ week.start }}</a>
+{% endfor %}
 
 {% endblock content %} {% block scripts %}
 <script>

@@ -2,12 +2,22 @@
 
 {% block content %}
 
-  <a href="/" class="btn btn-primary">Back</a>
+  <a
+  {% ifequal request.build_absolute_uri request.META.HTTP_REFERER %}
+    href="{% url 'qa:index' %}"
+  {% else %}
+    href="{{ request.META.HTTP_REFERER }}"
+  {% endifequal %}
+    class="btn btn-primary mb-3"
+  >
+    Back
+  </a>
 
   <form action="/update_error" method="POST">
     {% csrf_token %}
 
     <input type="text" name="id" id="errorId" value="{{ error.id }}" hidden>
+    <input type="text" name="prev" id="prev" value="{{ request.META.HTTP_REFERER }}" hidden>
 
     <!-- Notes -->
     <div class="form-group">
@@ -166,7 +176,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <a href="{% url 'delete_error' error.id %}" class="btn btn-danger">Delete</a>
+          <a href="{% url 'qa:delete_error' error.id %}" class="btn btn-danger">Delete</a>
         </div>
       </div>
     </div>

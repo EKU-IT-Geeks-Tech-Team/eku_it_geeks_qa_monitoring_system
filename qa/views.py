@@ -1,3 +1,4 @@
+from django.conf.urls import url
 from django.db.models import query
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
@@ -5,12 +6,16 @@ from django.core.serializers import serialize
 from django.template import context, loader
 from django.template.response import ContentNotRenderedError
 from . import models
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.urls import reverse
 
 # Create your views here.
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     template = loader.get_template("qa/index.html.j2")
 
     error_names_counts = {}
@@ -47,6 +52,19 @@ def index(request):
 
     error_count_by_week = get_error_count_by_week()
 
+    week_ranges = []
+
+    sorted_weeks = sorted(list(error_count_by_week.keys()))
+
+    for monday in sorted_weeks:
+        monday_dt = datetime.strptime(
+            monday, "%Y-%m-%d")
+        following_sunday = monday_dt + timedelta(days=6)
+        week_ranges.append({
+            "start": monday,
+            "end": following_sunday.strftime("%Y-%m-%d")
+        })
+
     context = {
         # table
         "errors": models.Error.objects.order_by('-committed_date').all()[:30],
@@ -56,20 +74,26 @@ def index(request):
         'pie_chart_data': list(error_names_counts.values()),
 
         # line graph
-        "line_graph_labels": list(error_count_by_week.keys()),
-        "line_graph_data": list(error_count_by_week.values()),
+        "line_graph_labels": sorted_weeks,
+        "line_graph_data": [error_count_by_week[week] for week in sorted_weeks],
 
         # forms
         "available_error_types": available_error_types,
         "available_employees": available_employees,
         "available_coordinators": available_coordinators,
         "available_tags": available_tags,
+
+        # buttons
+        "weeks": [week_range for week_range in week_ranges if error_count_by_week[week_range["start"]] > 0],
     }
 
     return HttpResponse(template.render(context, request))
 
 
 def employee_page(request, employee_id: int):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     employee = models.Employee.objects.filter(id=employee_id).all().first()
 
     if employee:
@@ -79,6 +103,9 @@ def employee_page(request, employee_id: int):
 
 
 def get_error(request, error_id: int):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     e = models.Error.objects.filter(id=error_id).first()
 
     available_error_types = list(
@@ -113,6 +140,9 @@ def get_error(request, error_id: int):
 
 
 def create_error(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     if request.method == "POST":
         notes = request.POST.get("notes")
         footprints_number = request.POST.get("footprints_number")
@@ -155,7 +185,12 @@ def create_error(request):
 
 
 def update_error(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     print(request.POST)
+
+    prev = None
 
     if request.method == "POST":  # update
         error = models.Error.objects.filter(id=request.POST.get("id")).first()
@@ -195,10 +230,15 @@ def update_error(request):
 
         error.tags.set(tags)
 
-    return redirect("/")
+        prev = request.POST.get("prev")
+
+    return redirect(prev if prev else "/")
 
 
 def delete_error(request, error_id: int):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     print(error_id)
 
     error = models.Error.objects.filter(id=error_id).first()
@@ -208,6 +248,7 @@ def delete_error(request, error_id: int):
 
 
 def get_error_count_by_week():
+
     # https://stackoverflow.com/questions/8746014/django-group-by-date-day-month-year
 
     from django.db.models.functions import TruncWeek
@@ -232,10 +273,26 @@ def get_error_count_by_week():
 
         week_counts[key] = value
 
+    weeks_dt = [datetime.strptime(week, "%Y-%m-%d")
+                for week in week_counts.keys()]
+
+    start_date = min(weeks_dt)
+    end_date = max(weeks_dt)
+
+    while start_date < end_date:
+        week_counts.setdefault(
+            start_date.strftime("%Y-%m-%d"),
+            0
+        )
+        start_date += timedelta(days=7)
+
     return week_counts
 
 
 def search_errors(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse("login"))
+
     from django.utils.datastructures import MultiValueDictKeyError
 
     # gets list of every error
@@ -311,6 +368,9 @@ def search_errors(request):
         models.Tag.objects.values("id", "name").all()
     )
 
+    # sort by committed date
+    errors = errors.order_by("-committed_date")
+
     context = {
         # at this point all errors have the same tag
         "errors": errors,
@@ -318,6 +378,16 @@ def search_errors(request):
         "available_employees": available_employees,
         "available_coordinators": available_coordinators,
         "available_tags": available_tags,
+        "current_query": {
+            "notes": notes,
+            "fp_num": fp_num,
+            "start_date": start_date_str,
+            "end_date": end_date_str,
+            "type": _type,
+            "employee": employee_name,
+            "coordinator": coordinator_name,
+            "tags": [tag.name for tag in list(tags.all())],
+        }
     }
     template = loader.get_template("qa/search_errors.html.j2")
 

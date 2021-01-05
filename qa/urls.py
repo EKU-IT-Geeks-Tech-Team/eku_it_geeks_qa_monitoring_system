@@ -2,6 +2,9 @@ from django.urls import path
 
 from . import views
 
+# define namespace
+app_name = "qa"
+
 # Defines URL by string to decide where to send the user
 urlpatterns = [
     #path(route, function, name)
