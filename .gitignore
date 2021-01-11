@@ -1,6 +1,7 @@
+# File created using '.gitignore Generator' for Visual Studio Code: https://bit.ly/vscode-gig
 
-# Created by https://www.toptal.com/developers/gitignore/api/django,python,windows,macos,vscode
-# Edit at https://www.toptal.com/developers/gitignore?templates=django,python,windows,macos,vscode
+# Created by https://www.toptal.com/developers/gitignore/api/windows,vscode,python,macos,django,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=windows,vscode,python,macos,django,visualstudiocode
 
 ### Django ###
 *.log
@@ -240,13 +241,20 @@ Temporary Items
 
 # profiling data
 
-### vscode ###
+### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
-!.vscode/extensions.json
 *.code-workspace
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+### vscode ###
+!.vscode/settings.json
+!.vscode/extensions.json
 
 ### Windows ###
 # Windows thumbnail cache files
@@ -274,4 +282,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/django,python,windows,macos,vscode
+# End of https://www.toptal.com/developers/gitignore/api/windows,vscode,python,macos,django,visualstudiocode
+
+# Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
+
