@@ -20,6 +20,9 @@
 {% block content %}
   <a href="{% url 'qa:index' %}" class="btn btn-primary mb-3">Back</a>
 
+  <button id="tottle-pie-chart" class="btn btn-warning mb-3 tottle-chart" data-container="pie-chart-container">Toggle Pie Chart</button>
+  <button id="tottle-line-chart" class="btn btn-warning mb-3 tottle-chart" data-container="line-chart-container">Toggle Line Chart</button>
+
   <form action="/search" method="get">
     <div class="row">
       <div class="col-md-10">
@@ -182,6 +185,18 @@
       </div>
   </form>
 
+  {# CHARTS #}
+    <div class="row my-3">
+      <div id="pie-chart-container" class="col-lg-6 my-3 chart-container">
+        <canvas id="pie-chart"></canvas>
+      </div>
+      <div id="line-chart-container" class="col-lg-6 my-3 chart-container">
+        <canvas id="line-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {# TABLES #}
   {% if errors|length > 0 %}
     <table class="table table-striped table-hover table-sm">
       <thead>
@@ -245,5 +260,98 @@
       })
     })
   })
+
+  document.querySelectorAll(".chart-container").forEach(chart_container => {
+    chart_container.style.display = "block"
+  })
+
+  document.querySelectorAll(".tottle-chart").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const chart_container_id = btn.dataset.container
+      const chart_container = document.getElementById(chart_container_id)
+      if (chart_container.style.display === "none") {
+        chart_container.style.display = "block";
+      } else {
+        chart_container.style.display = "none";
+      }
+    })
+  })
+
+  // PIE CHART
+  function getRandomColor() {
+    return `#${Math.floor(Math.random() * 16777215).toString(16)}`
+  }
+
+backgroundColors = ['#AA0000', '#0000AA', '#00AA00', '#01cdfe', '#90400A','#dfdb76','#b99df0',
+                      '#046e6c', '#c6d9e9', '#fbd11d', '#904f0f', '#ffb3ba','#bae1ff','#baffc9',
+                      '#ff71ce', '#b967ff', '#01cdfe', '#05ffa1', '#f3c9bd','#00AA88'];
+  
+  const pie_chart_labels = {{ pie_chart_labels| safe }}
+  const pie_chart_data = {{ pie_chart_data| safe }}
+
+  const loopToThisNumber = pie_chart_labels.length - backgroundColors.length;
+
+  for (let i = 0; i < loopToThisNumber; i += 1) {
+    backgroundColors.push(getRandomColor())
+  };
+
+  var config = {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: pie_chart_data,
+        backgroundColor: backgroundColors,
+        label: 'Type of Error Comparison'
+      }],
+      labels: pie_chart_labels
+    },
+    options: {
+      responsive: true
+    }
+  };
+
+  var ctx = document.getElementById('pie-chart').getContext('2d');
+  window.myPie1 = new Chart(ctx, config);
+
+  // Line chart
+  const line_graph_labels = {{ line_graph_labels | safe}}
+  const line_graph_data = {{ line_graph_data | safe}}
+
+  var config = {
+    type: "line",
+    data: {
+      datasets: [
+        {
+          data: line_graph_data,
+          backgroundColor: backgroundColors,
+          label: "Error Count by Week",
+          fill: false,
+          borderColor: "#000000",
+        },
+      ],
+      labels: line_graph_labels,
+    },
+    options: {
+      responsive: true,
+      hover: {
+        mode: 'label'
+      },
+      scales: {
+        yAxes: [{
+          display: true,
+          ticks: {
+            beginAtZero: true
+          }
+        }]
+      },
+    }
+  };
+
+  var ctx = document.getElementById("line-chart").getContext("2d");
+  window.myPie2 = new Chart(ctx, config);
+
+  // var testtest = {{ testtest | safe }}
+  // console.log(testtest)
+
 </script>
 {% endblock scripts %}

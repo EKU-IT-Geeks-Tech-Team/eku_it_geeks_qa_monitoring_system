@@ -8,6 +8,7 @@ from django.template.response import ContentNotRenderedError
 from . import models
 from datetime import datetime, timedelta
 from django.urls import reverse
+from pprint import pprint
 
 # Create your views here.
 
@@ -34,20 +35,20 @@ def index(request):
         error_counts_by_day[key] += 1
 
     available_error_types = list(
-        models.ErrorType.objects.values("id", "name").all()
+        models.ErrorType.objects.values("id", "name").order_by("name").all()
     )
 
     available_employees = list(
-        models.Employee.objects.values("id", "name").all()
+        models.Employee.objects.values("id", "name").order_by("name").all()
     )
 
     available_coordinators = list(
         models.Employee.objects.filter(
-            roles__name="Coordinator").values("id", "name").all()
+            roles__name="Coordinator").values("id", "name").order_by("name").all()
     )
 
     available_tags = list(
-        models.Tag.objects.values("id", "name").all()
+        models.Tag.objects.values("id", "name").order_by("name").all()
     )
 
     error_count_by_week = get_error_count_by_week()
@@ -247,7 +248,7 @@ def delete_error(request, error_id: int):
     return redirect("/")
 
 
-def get_error_count_by_week():
+def get_error_count_by_week(query=None):
 
     # https://stackoverflow.com/questions/8746014/django-group-by-date-day-month-year
 
@@ -255,36 +256,66 @@ def get_error_count_by_week():
     from django.db.models import Count
     from datetime import datetime
 
+    if not query:
+        query = models.Error.objects.all()
+
     queryset = list(
-        models.Error.objects
+        query
         .annotate(week=TruncWeek("committed_date"))
         .values("week")
         .annotate(c=Count("id"))
         .values("week", "c")
     )
 
-    print(queryset)
+    weeks = set([k['week'] for k in queryset])
+    dict3 = []
+    for week in weeks:
+        temp_val = []
+        for dict_ in queryset:
+            if dict_['week'] == week:
+                temp_val.append(dict_['c'])
+        dict3.append({'week': week, 'c': sum(temp_val)})
+    pprint(dict3)
+
+    queryset = dict3
+
+    # if query:
+
+    # else:
+    #     queryset = list(
+    #         models.Error.objects
+    #         .annotate(week=TruncWeek("committed_date"))
+    #         .values("week")
+    #         .annotate(c=Count("id"))
+    #         .values("week", "c")
+    #     )
+
+    # [{"week": dt, "c": n}]
+
+    # pprint(queryset)
 
     week_counts = {}
 
-    for data in queryset:
-        key = data["week"].strftime("%Y-%m-%d")
-        value = data["c"]
+    if len(queryset) > 0:
 
-        week_counts[key] = value
+        for data in queryset:
+            key = data["week"].strftime("%Y-%m-%d")
+            value = data["c"]
 
-    weeks_dt = [datetime.strptime(week, "%Y-%m-%d")
-                for week in week_counts.keys()]
+            week_counts[key] = value
 
-    start_date = min(weeks_dt)
-    end_date = max(weeks_dt)
+        weeks_dt = [datetime.strptime(week, "%Y-%m-%d")
+                    for week in week_counts.keys()]
 
-    while start_date < end_date:
-        week_counts.setdefault(
-            start_date.strftime("%Y-%m-%d"),
-            0
-        )
-        start_date += timedelta(days=7)
+        start_date = min(weeks_dt)
+        end_date = max(weeks_dt)
+
+        while start_date < end_date:
+            week_counts.setdefault(
+                start_date.strftime("%Y-%m-%d"),
+                0
+            )
+            start_date += timedelta(days=7)
 
     return week_counts
 
@@ -296,7 +327,8 @@ def search_errors(request):
     from django.utils.datastructures import MultiValueDictKeyError
 
     # gets list of every error
-    errors = models.Error.objects.all()
+    # errors = models.Error.objects.all()
+    errors = models.Error.objects
 
     # get tag names from URL
     tag_names = request.GET.getlist("tags")
@@ -371,6 +403,15 @@ def search_errors(request):
     # sort by committed date
     errors = errors.order_by("-committed_date")
 
+    error_count_by_week = get_error_count_by_week(query=errors)
+    sorted_weeks = sorted(list(error_count_by_week.keys()))
+
+    error_names_counts = {}
+    for error in errors:
+        # error count
+        error_names_counts.setdefault(error.type.name, 0)
+        error_names_counts[error.type.name] += 1
+
     context = {
         # at this point all errors have the same tag
         "errors": errors,
@@ -387,7 +428,14 @@ def search_errors(request):
             "employee": employee_name,
             "coordinator": coordinator_name,
             "tags": [tag.name for tag in list(tags.all())],
-        }
+        },
+        # pie chart
+        'pie_chart_labels': list(error_names_counts.keys()),
+        'pie_chart_data': list(error_names_counts.values()),
+        # line graph
+        "line_graph_labels": sorted_weeks,
+        "line_graph_data": [error_count_by_week[week] for week in sorted_weeks],
+
     }
     template = loader.get_template("qa/search_errors.html.j2")
 
