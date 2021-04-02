@@ -6,9 +6,8 @@
     border-radius: 5px;
   }
 
-  .modal-body {
-    max-height: 500px;
-    overflow: auto !important;
+  .modal-chart {
+    max-height: 100%;
   }
 </style>
 {% endblock styles %} {% block content %}
@@ -23,7 +22,7 @@
     </a>
 
     <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary btn-lg mx-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    <button type="button" class="btn btn-primary btn-lg mx-2" data-bs-toggle="modal" data-bs-target="#logErrorModal">
       Log New Error
     </button>
   </div>
@@ -32,10 +31,10 @@
 {# CHARTS #}
 <div class="row my-3">
   <div class="col-lg-6 my-3">
-    <canvas id="pie-chart"></canvas>
+    <canvas data-bs-toggle="modal" data-bs-target="#pieChartModal" id="pie-chart"></canvas>
   </div>
   <div class="col-lg-6 my-3">
-    <canvas id="line-chart"></canvas>
+    <canvas data-bs-toggle="modal" data-bs-target="#lineChartModal" id="line-chart"></canvas>
   </div>
 </div>
 
@@ -64,12 +63,12 @@
 </div>
 
 <!-- add error modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="logErrorModal" tabindex="-1" aria-labelledby="logErrorModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <form action="/create_error" method="POST">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Log New Error</h5>
+          <h5 class="modal-title" id="logErrorModalLabel">Log New Error</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -177,6 +176,37 @@
   </div>
 </div>
 
+{# pie chart modal #}
+
+<!-- Modal -->
+<div class="modal fade show" id="pieChartModal" tabindex="-1" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <canvas class="modal-chart" id="pie-chart-large"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# line chart modal #}
+<div class="modal fade show" id="lineChartModal" tabindex="-1" aria-hidden="true" role="dialog">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <canvas class="modal-chart" id="line-chart-large"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {# CREATE BUTTON FOR EACH WEEK #}
 
 {% for week in weeks %}
@@ -227,8 +257,25 @@ backgroundColors = ['#AA0000', '#0000AA', '#00AA00', '#01cdfe', '#90400A','#dfdb
     }
   };
 
+  var ctx = document.getElementById('pie-chart-large').getContext('2d');
+  window.myPie3 = new Chart(ctx, config);
+  
+  // PIE CHART large
+
+  config2 = {
+    ...config,
+    options: {
+      responsive: true,
+      legend: {
+        onClick: null  
+      }
+    }
+  }
+
   var ctx = document.getElementById('pie-chart').getContext('2d');
-  window.myPie1 = new Chart(ctx, config);
+  window.myPie1 = new Chart(ctx, config2);
+
+  
 
   // Line chart
   const line_graph_labels = {{ line_graph_labels | safe}}
@@ -264,8 +311,21 @@ backgroundColors = ['#AA0000', '#0000AA', '#00AA00', '#01cdfe', '#90400A','#dfdb
     }
   };
 
-  var ctx = document.getElementById("line-chart").getContext("2d");
+  var ctx = document.getElementById("line-chart-large").getContext("2d");
   window.myPie2 = new Chart(ctx, config);
+
+  config2 = {
+    ...config,
+    options: {
+      responsive: true,
+      legend: {
+        onClick: null  
+      }
+    }
+  }
+
+  var ctx = document.getElementById("line-chart").getContext("2d");
+  window.myPie2 = new Chart(ctx, config2);
 
   var testtest = {{ testtest | safe }}
   console.log(testtest)
