@@ -232,20 +232,19 @@ def update_error(request):
         error.tags.set(tags)
 
         prev = request.POST.get("prev")
+        print(f"PREV TYPE: {type(prev)}")
 
     return redirect(prev if prev else "/")
 
 
-def delete_error(request, error_id: int):
+def delete_error(request, error_id, _next):
     if not request.user.is_authenticated:
         return redirect(reverse("login"))
-
-    print(error_id)
 
     error = models.Error.objects.filter(id=error_id).first()
     error.delete()
 
-    return redirect("/")
+    return redirect(_next)
 
 
 def get_error_count_by_week(query=None):
