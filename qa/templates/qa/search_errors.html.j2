@@ -18,175 +18,187 @@
 {% endblock styles %}
 
 {% block content %}
-  <a href="{% url 'qa:index' %}" class="btn btn-primary mb-3">Back</a>
+  <div class="row">
+    <div class="col-md-12">
+    <a href="{% url 'qa:index' %}" class="btn btn-primary mb-3">Back</a>
 
-  <button id="tottle-pie-chart" class="btn btn-warning mb-3 tottle-chart" data-container="pie-chart-container">Toggle Pie Chart</button>
-  <button id="tottle-line-chart" class="btn btn-warning mb-3 tottle-chart" data-container="line-chart-container">Toggle Line Chart</button>
+    <button id="tottle-pie-chart" class="btn btn-warning mb-3 tottle-chart" data-container="pie-chart-container">Toggle Pie Chart</button>
+    <button id="tottle-line-chart" class="btn btn-warning mb-3 tottle-chart" data-container="line-chart-container">Toggle Line Chart</button>
+    </div>
+  </div>
+  
+  <div class="row">
+    <form action="/search" method="get">
+      <div class="row">
+        <div class="col-md-10">
+          <div class="row">
+            {# NOTES #}
+            <div class="col-md-3">
+              <label for="notes">Notes</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Notes"
+                name="notes"
+                id="notes"
+                {% if current_query.notes is not None %}
+                  value="{{ current_query.notes }}"
+                {% endif %}
+              >
+            </div>
 
-  <form action="/search" method="get">
-    <div class="row">
-      <div class="col-md-10">
-        <div class="row">
-          {# NOTES #}
-          <div class="col-md-3">
-            <label for="notes">Notes</label>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Notes"
-              name="notes"
-              id="notes"
-              {% if current_query.notes is not None %}
-                value="{{ current_query.notes }}"
-              {% endif %}
-            >
+            {# FP# #}
+            <div class="col-md-3">
+              <label for="fp_num">FP#</label>
+              <input
+                type="number"
+                class="form-control"
+                placeholder="12345"
+                name="fp_num"
+                id="fp_num"
+                {% if current_query.fp_num is not None %}
+                  value="{{ current_query.fp_num }}"
+                {% endif %}
+              >
+            </div>
+
+            {# START DATE #}
+            <div class="col-md-3">
+              <label for="start">Start</label>
+              <input
+                type="date"
+                class="form-control"
+                name="start"
+                id="start"
+                {% if current_query.start_date is not None %}
+                  value="{{ current_query.start_date }}"
+                {% endif %}
+              >
+            </div>
+
+            {# START DATE #}
+            <div class="col-md-3">
+              <label for="end">End</label>
+              <input
+                type="date"
+                class="form-control"
+                name="end"
+                id="end"
+                {% if current_query.end_date is not None %}
+                  value="{{ current_query.end_date }}"
+                {% endif %}
+              >
+            </div>
           </div>
 
-          {# FP# #}
-          <div class="col-md-3">
-            <label for="fp_num">FP#</label>
-            <input
-              type="number"
-              class="form-control"
-              placeholder="12345"
-              name="fp_num"
-              id="fp_num"
-              {% if current_query.fp_num is not None %}
-                value="{{ current_query.fp_num }}"
-              {% endif %}
-            >
-          </div>
+          <div class="row">
+            {# TYPE #}
+            <div class="col-md-3">
+              <label for="type">Type</label>
+              <select class="form-control" name="type" id="type">
+                <option
+                  value=""
+                  {% if current_query.type is None %}
+                    selected
+                  {% endif %}
+                ></option>
+                
+                {% for error_type in available_error_types %}
+                  <option
+                    value="{{ error_type.name }}"
+                    {% ifequal current_query.type error_type.name %}
+                      selected
+                    {% endifequal %}
+                  >
+                    {{ error_type.name }}
+                  </option>
+                {% endfor %}
 
-          {# START DATE #}
-          <div class="col-md-3">
-            <label for="start">Start</label>
-            <input
-              type="date"
-              class="form-control"
-              name="start"
-              id="start"
-              {% if current_query.start_date is not None %}
-                value="{{ current_query.start_date }}"
-              {% endif %}
-            >
-          </div>
+              </select>
+            </div>
 
-          {# START DATE #}
-          <div class="col-md-3">
-            <label for="end">End</label>
-            <input
-              type="date"
-              class="form-control"
-              name="end"
-              id="end"
-              {% if current_query.end_date is not None %}
-                value="{{ current_query.end_date }}"
-              {% endif %}
-            >
+            {# EMPLOYEE #}
+            <div class="col-md-3">
+              <label for="employee">Employee</label>
+              <select class="form-control" name="employee" id="employee">
+                <option
+                  value=""
+                  {% if current_query.employee is None %}
+                    selected
+                  {% endif %}
+                ></option>
+                
+                {% for employee in available_employees %}
+                  <option
+                    value="{{ employee.name }}"
+                    {% ifequal current_query.employee employee.name %}
+                      selected
+                    {% endifequal %}
+                  >
+                    {{ employee.name }}
+                  </option>
+                {% endfor %}
+
+              </select>
+            </div>
+
+            {# COORDINATOR #}
+            <div class="col-md-3">
+              <label for="coordinator">Coordinator</label>
+              <select class="form-control" name="coordinator" id="coordinator">
+                <option
+                  value=""
+                  {% if current_query.coordinator is None %}
+                    selected
+                  {% endif %}
+                ></option>
+                
+                {% for coordinator in available_coordinators %}
+                  <option
+                    value="{{ coordinator.name }}"
+                    {% ifequal current_query.coordinator coordinator.name %}
+                      selected
+                    {% endifequal %}
+                  >
+                    {{ coordinator.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            {# BUTTON #}
+            <div class="col-md-3 d-grid gap-2">
+              <button class="btn btn-primary mt-4" type="submit">Search</button>
+            </div>
           </div>
         </div>
 
-        <div class="row">
-          {# TYPE #}
-          <div class="col-md-3">
-            <label for="type">Type</label>
-            <select class="form-control" name="type" id="type">
+        <div class="col-md-2">
+        <label for="tags">Tags</label>
+          <select class="form-select" multiple aria-label="multiple select example" name="tags" id="tags">
+            {% for tag in available_tags %}
               <option
-                value=""
-                {% if current_query.type is None %}
+                value="{{ tag.name }}"
+                {% if tag.name in current_query.tags %}
                   selected
                 {% endif %}
-              ></option>
-              
-              {% for error_type in available_error_types %}
-                <option
-                  value="{{ error_type.name }}"
-                  {% ifequal current_query.type error_type.name %}
-                    selected
-                  {% endifequal %}
-                >
-                  {{ error_type.name }}
-                </option>
-              {% endfor %}
-
-            </select>
-          </div>
-
-          {# EMPLOYEE #}
-          <div class="col-md-3">
-            <label for="employee">Employee</label>
-            <select class="form-control" name="employee" id="employee">
-              <option
-                value=""
-                {% if current_query.employee is None %}
-                  selected
-                {% endif %}
-              ></option>
-              
-              {% for employee in available_employees %}
-                <option
-                  value="{{ employee.name }}"
-                  {% ifequal current_query.employee employee.name %}
-                    selected
-                  {% endifequal %}
-                >
-                  {{ employee.name }}
-                </option>
-              {% endfor %}
-
-            </select>
-          </div>
-
-          {# COORDINATOR #}
-          <div class="col-md-3">
-            <label for="coordinator">Coordinator</label>
-            <select class="form-control" name="coordinator" id="coordinator">
-              <option
-                value=""
-                {% if current_query.coordinator is None %}
-                  selected
-                {% endif %}
-              ></option>
-              
-              {% for coordinator in available_coordinators %}
-                <option
-                  value="{{ coordinator.name }}"
-                  {% ifequal current_query.coordinator coordinator.name %}
-                    selected
-                  {% endifequal %}
-                >
-                  {{ coordinator.name }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-
-          {# BUTTON #}
-          <div class="col-md-3 d-grid gap-2">
-            <button class="btn btn-primary mt-4" type="submit">Search</button>
-          </div>
+              >
+                {{ tag.name }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
-      </div>
+    </form>
+  </div>
 
-      <div class="col-md-2">
-      <label for="tags">Tags</label>
-        <select class="form-select" multiple aria-label="multiple select example" name="tags" id="tags">
-          {% for tag in available_tags %}
-            <option
-              value="{{ tag.name }}"
-              {% if tag.name in current_query.tags %}
-                selected
-              {% endif %}
-            >
-              {{ tag.name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-  </form>
+  <div class="row mt-3">
+    <div class="col-md-12 d-flex justify-content-center text-center">
+      <h3 >Total Error Count: {{errors | length}}</h3>
+    </div>
+  </div>
 
   {# CHARTS #}
-    <div class="row my-3">
+    <div class="row mt-3">
       <div id="pie-chart-container" class="col-lg-6 my-3 chart-container">
         <canvas data-bs-toggle="modal" data-bs-target="#pieChartModal" id="pie-chart"></canvas>
       </div>
