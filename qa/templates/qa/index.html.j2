@@ -101,7 +101,7 @@
             <label for="dateFoundInput">Date Found</label>
             <input
               type="date"
-              class="form-control"
+              class="form-control default-today"
               id="dateFoundInput"
               name="found_date"
             />
@@ -112,7 +112,7 @@
             <label for="dateCommittedInput">Date Committed</label>
             <input
               type="date"
-              class="form-control"
+              class="form-control default-today"
               id="dateCommittedInput"
               name="committed_date"
             />
@@ -214,6 +214,7 @@
 {% endfor %}
 
 {% endblock content %} {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
 <script>
   window.addEventListener("load", () => {
     // make table rows clickable
@@ -222,6 +223,12 @@
         window.location = row.dataset.href
       })
     })
+  })
+
+  // set date picker default to today
+  var today = moment().format('YYYY-MM-DD');
+  document.querySelectorAll(".default-today").forEach(_input =>{
+    _input.value = today;
   })
 
   // PIE CHART
