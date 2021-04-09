@@ -67,6 +67,7 @@ def index(request):
         })
 
     context = {
+        "title": "Home",
         # table
         "errors": models.Error.objects.order_by('-committed_date').all()[:30],
 
@@ -127,6 +128,7 @@ def get_error(request, error_id: int):
     )
 
     context = {
+        "title": f"Error: {e.id}",
         "error": e,
         "formatted_found_date": e.found_date.strftime("%Y-%m-%d"),
         "formatted_committed_date": e.committed_date.strftime("%Y-%m-%d"),
@@ -412,6 +414,7 @@ def search_errors(request):
         error_names_counts[error.type.name] += 1
 
     context = {
+        "title": "Search",
         # at this point all errors have the same tag
         "errors": errors,
         "available_error_types": available_error_types,
