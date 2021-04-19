@@ -122,6 +122,7 @@
           <div class="form-group">
             <label for="errorTypeInput">Error Type</label>
             <select class="form-control" id="errorTypeInput" name="error_type_id">
+            <option selected></option>
               {% for error_type in available_error_types %}
               <option value="{{ error_type.id }}">{{ error_type.name }}</option>
               {% endfor %}
@@ -132,6 +133,7 @@
           <div class="form-group">
             <label for="employeeInput">Employee</label>
             <select class="form-control" id="employeeInput" name="employee_id">
+            <option selected></option>
               {% for employee in available_employees %}
               <option value="{{ employee.id }}">{{ employee.name }}</option>
               {% endfor %}
@@ -142,6 +144,7 @@
           <div class="form-group">
             <label for="coordinatorInput">Coordinator</label>
             <select class="form-control" id="coordinatorInput" name="coordinator_id">
+            <option selected></option>
               {% for coordinator in available_coordinators %}
               <option value="{{ coordinator.id }}">{{ coordinator.name }}</option>
               {% endfor %}
